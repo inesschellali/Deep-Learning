@@ -1,0 +1,37 @@
+To go from PSDs to “epileptic vs not epileptic” you need to: clean the data, extract discriminatory features (often including bandpower/PSD‑based ones), and train/test a classifier on labeled patients.
+​
+
+1. Preprocessing and segmentation
+Remove artifacts and line noise (high‑pass, low‑pass, 50 Hz notch; ICA or similar for eye/muscle artifacts) so the classifier focuses on brain activity.
+​
+
+Segment the EEG into fixed‑length epochs (e.g., 2–10 s) and label each epoch or recording as “epileptic” vs “non‑epileptic” according to your ground truth (ictal vs interictal/healthy, or epileptic vs PNES etc.).
+​
+
+2. Feature extraction (what you feed the model)
+Compute spectral features from each epoch and channel: bandpower or relative power in delta, theta, alpha, beta, and gamma bands; ratios between bands; max PSD frequency; spectral slope.
+​
+
+Add time‑domain and non‑linear features that are known to help with epilepsy classification: line length, RMS, variance, kurtosis/skewness, entropy, Hjorth parameters, etc.; MNE‑Features has many of these already implemented.
+​
+
+3. Building a classifier
+Assemble a feature matrix (epochs × features) and a label vector, then split into train/validation/test sets or use cross‑validation.
+​
+
+Start with simple supervised models (logistic regression, SVM, Random Forest, gradient boosting); seizure‑detection papers using PSD and mixed features achieve good accuracy with these before moving to deep models.
+​
+
+4. Evaluation and interpretation
+Evaluate accuracy, sensitivity/recall for the epileptic class, specificity, ROC‑AUC, and confusion matrix; imbalanced data may require class weighting or resampling.
+​
+
+Inspect which features and frequency bands are most important (e.g., via feature importance or coefficients); many works report beta and high‑frequency power as particularly informative for distinguishing epileptic activity.
+​
+
+5. Practical implementation in MNE/Python
+Use MNE for preprocessing and epoching, then MNE‑Features (FeatureExtractor) to compute a feature set directly from your Epochs object, and scikit‑learn Pipeline for feature extraction + classifier + cross‑validation (there is a complete seizure‑detection example on the Bonn dataset you can adapt).
+​
+
+Once the per‑epoch model works, aggregate decisions at the patient level (e.g., majority vote or probability averaging over all epochs from that subject) to categorize each patient as epileptic vs not epileptic.
+​
